@@ -50,9 +50,6 @@ function Push-CIPPDBCacheData {
             'SecureScore'
             'PIMSettings'
             'Domains'
-            'RoleEligibilitySchedules'
-            'RoleManagementPolicies'
-            'RoleAssignmentScheduleInstances'
             'B2BManagementPolicy'
             'AuthenticationFlowsPolicy'
             'DeviceRegistrationPolicy'
@@ -99,6 +96,7 @@ function Push-CIPPDBCacheData {
                 'ExoPresetSecurityPolicy'
                 'ExoTenantAllowBlockList'
                 'Mailboxes'
+                'CASMailboxes'
                 'MailboxUsage'
                 'OneDriveUsage'
             )
@@ -129,13 +127,16 @@ function Push-CIPPDBCacheData {
         }
         #endregion Conditional Access Licensed
 
-        #region Azure AD Premium P2 - Identity Protection features
+        #region Azure AD Premium P2 - Identity Protection/PIM features
         if ($AzureADPremiumP2Capable) {
             $P2CacheFunctions = @(
                 'RiskyUsers'
                 'RiskyServicePrincipals'
                 'ServicePrincipalRiskDetections'
                 'RiskDetections'
+                'RoleEligibilitySchedules'
+                'RoleAssignmentSchedules'
+                'RoleManagementPolicies'
             )
             foreach ($CacheFunction in $P2CacheFunctions) {
                 $Batch.Add(@{
@@ -157,6 +158,7 @@ function Push-CIPPDBCacheData {
                 'IntunePolicies'
                 'ManagedDeviceEncryptionStates'
                 'IntuneAppProtectionPolicies'
+                'DetectedApps'
             )
             foreach ($CacheFunction in $IntuneCacheFunctions) {
                 $Batch.Add(@{
@@ -178,12 +180,11 @@ function Push-CIPPDBCacheData {
             OrchestratorName = "CIPPDBCacheTenant_$TenantFilter"
             Batch            = @($Batch)
             SkipLog          = $true
-            DurableMode      = 'Sequence'
         }
 
         if ($Item.TestRun -eq $true) {
             $InputObject | Add-Member -NotePropertyName PostExecution -NotePropertyValue @{
-                FunctionName = 'CIPPTestsRun'
+                FunctionName = 'CIPPDBTestsRun'
                 Parameters   = @{
                     TenantFilter = $TenantFilter
                 }
